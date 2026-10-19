@@ -1,17 +1,18 @@
-FROM python:3.11.4-slim
+FROM python:3.11-slim
+
+# Instalamos unzip (necesario para Reflex) y limpiamos la caché
+RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-# Forzamos la instalación de las dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Inicializa y construye la app de Reflex
 RUN reflex init
-RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web
 
-# Comando de inicio para producción
+EXPOSE 10000
+
 CMD ["reflex", "run", "--env", "prod", "--backend-port", "10000", "--frontend-port", "10000"]
