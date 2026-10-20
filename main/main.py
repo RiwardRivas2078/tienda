@@ -169,20 +169,19 @@ def seccion_personalizador() -> rx.Component:
                         src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
                         width="100%", border_radius="8px"
                     ),
-                    rx.center(
-                        rx.vstack(
-                            rx.cond(
-                                State.logo_subido.length() > 0,
-                                rx.image(src=State.logo_subido[0], width="70px", mix_blend_mode="multiply", filter="contrast(120%)")
-                            ),
-                            rx.cond(
-                                State.texto_cliente != "",
-                                rx.text(State.texto_cliente, font_size="14px", font_weight="bold", color="#2C2C2C", text_align="center")
-                            ),
-                            align="center",
-                            padding_top="5%"
+                    # Contenedor para el logo y el texto, posicionado absolutamente
+                    rx.vstack(
+                        rx.cond(
+                            State.logo_subido.length() > 0,
+                            rx.image(src=State.logo_subido[0], width="70px", mix_blend_mode="multiply", filter="contrast(120%)")
                         ),
-                        position="absolute", top="0", left="0", width="100%", height="100%"
+                        rx.cond(
+                            State.texto_cliente != "",
+                            rx.text(State.texto_cliente, font_size="14px", font_weight="bold", color="#2C2C2C", text_align="center")
+                        ),
+                        # Posicionamiento absoluto para que caiga en el panel frontal
+                        position="absolute", top="35%", left="50%", transform="translate(-50%, -50%)",
+                        align="center", width="100%", spacing="1"
                     ),
                     position="relative", width="100%", max_width="400px", margin="0 auto"
                 ),
@@ -310,6 +309,5 @@ def index() -> rx.Component:
         bg="#FFFFFF", min_height="100vh", align="center", width="100%", spacing="0",
     )
 
-# IMPORTANTE: Asegúrate de que rxconfig.py NO tenga configurado api_url
 app = rx.App(style={"font_family": "'Helvetica Neue', Helvetica, Arial, sans-serif"})
 app.add_page(index)

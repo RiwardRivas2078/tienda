@@ -1,45 +1,53 @@
 FROM python:3.11-slim
 
-# 1. Instalamos Node.js, npm, unzip, Caddy y certificados
+# Instalamos Node.js, npm, unzip, Caddy y certificados
 RUN apt-get update && apt-get install -y nodejs npm unzip caddy ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# 2. Instalamos Bun manualmente para evitar fallos de SSL
+# Instalamos Bun manualmente para evitar fallos de SSL
 RUN npm install -g bun
 
 WORKDIR /app
 
-# 3. Copiamos e instalamos dependencias de Python
+# Copiamos e instalamos dependencias de Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. Copiamos el resto del proyecto
+# Copiamos el resto del proyecto
 COPY . .
 
-# 5. Forzamos el uso de npm y desactivamos verificación SSL
+# Forzamos el uso de npm y desactivamos verificación SSL
 ENV REFLEX_USE_NPM=1
 ENV SSL_NO_VERIFY=1
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
-# 6. Inicializamos Reflex y construimos el frontend
+# Inicializamos Reflex y construimos el frontend
 RUN reflex init --template blank
 RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web
 
-# 7. Configuración de Caddy con las rutas correctas de Reflex
+# CONFIGURACIÓN DE CADDY CORREGIDA (basada en el ejemplo oficial de Reflex)
 RUN cat > Caddyfile <<EOF
 :{\$PORT} {
     encode gzip
+
+    # Matcher para todas las rutas del backend (WebSocket, uploads, ping)
+    @backend_routes path /_event/* /ping /_upload /_upload/*
     
-    # Proxy para WebSockets (eventos en tiempo real) y subidas
-    reverse_proxy /_event/* localhost:8000
-    reverse_proxy /_upload/* localhost:8000
-    reverse_proxy /ping localhost:8000
+    # Redirigir esas rutas al backend de Reflex en el puerto 8000
+    handle @backend_routes {
+        reverse_proxy localhost:8000
+    }
 
     # Servir el frontend estático
     root * /srv
-    try_files {path} {path}/ /404.html
-    file_server
+    route {
+        try_files {path} {path}/ /404.html
+        file_server
+    }
 }
 EOF
+
+# Señal para detener el backend correctamente
+STOPSIGNAL SIGKILL
 
 EXPOSE 10000
 CMD ["sh", "-c", "caddy start && reflex run --env prod --backend-only"]
