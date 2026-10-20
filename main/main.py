@@ -310,5 +310,6 @@ def index() -> rx.Component:
         bg="#FFFFFF", min_height="100vh", align="center", width="100%", spacing="0",
     )
 
+# IMPORTANTE: Asegúrate de que rxconfig.py NO tenga configurado api_url
 app = rx.App(style={"font_family": "'Helvetica Neue', Helvetica, Arial, sans-serif"})
 app.add_page(index)

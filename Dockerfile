@@ -24,21 +24,15 @@ ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 RUN reflex init --template blank
 RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web
 
-# 7. Configuración de Caddy con soporte explícito para WebSockets
+# 7. Configuración de Caddy con las rutas correctas de Reflex
 RUN cat > Caddyfile <<EOF
 :{\$PORT} {
     encode gzip
     
-    # Proxy para WebSockets (eventos en tiempo real)
-    reverse_proxy /_event/* localhost:8000 {
-        transport http {
-            read_timeout 300s
-        }
-    }
-    
-    # Proxy para otras rutas del backend
-    reverse_proxy /ping localhost:8000
+    # Proxy para WebSockets (eventos en tiempo real) y subidas
+    reverse_proxy /_event/* localhost:8000
     reverse_proxy /_upload/* localhost:8000
+    reverse_proxy /ping localhost:8000
 
     # Servir el frontend estático
     root * /srv
