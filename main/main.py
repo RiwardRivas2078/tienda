@@ -5,7 +5,7 @@ import httpx
 import re
 from functools import lru_cache
 
-# --- SCRAPING BCV ---
+# --- SCRAPING BCV (con caché) ---
 @lru_cache(maxsize=1)
 def obtener_tasa_bcv():
     try:
@@ -43,6 +43,9 @@ class State(rx.State):
     def quitar_del_carrito(self, index: int):
         self.carrito.pop(index)
 
+    def vaciar_carrito(self):
+        self.carrito = []
+
     def sumar_cantidad(self, index: int):
         self.carrito[index]["cantidad"] += 1
 
@@ -73,21 +76,21 @@ class State(rx.State):
 
 WHATSAPP_NUMERO = "584242446795"
 
-# --- COMPONENTES ---
+# --- COMPONENTES (Paleta Crema + Terracota) ---
 
 def navbar() -> rx.Component:
     return rx.box(
         rx.container(
             rx.flex(
                 rx.hstack(
-                    rx.icon(tag="sparkles", color="#4F46E5", size=24),
-                    rx.heading("SubliCaracas", size="5", weight="bold", color="#0F172A"),
+                    rx.icon(tag="sparkles", color="#2C2C2C", size=24),
+                    rx.heading("SubliCaracas", size="5", weight="bold", color="#2C2C2C"),
                     align="center",
                 ),
                 rx.flex(
-                    rx.link("Catálogo", href="#catalogo", color="#475569", weight="medium", _hover={"color": "#4F46E5"}),
-                    rx.link("Galería", href="#galeria", color="#475569", weight="medium", _hover={"color": "#4F46E5"}),
-                    rx.link("Personalizar", href="#personalizar", color="#475569", weight="medium", _hover={"color": "#4F46E5"}),
+                    rx.link("Catálogo", href="#catalogo", color="#6B7280", weight="medium", _hover={"color": "#D96B43"}),
+                    rx.link("Galería", href="#galeria", color="#6B7280", weight="medium", _hover={"color": "#D96B43"}),
+                    rx.link("Personalizar", href="#personalizar", color="#6B7280", weight="medium", _hover={"color": "#D96B43"}),
                     rx.color_mode.button(), 
                     spacing="4", direction=rx.breakpoints(initial="row", sm="row"), justify="center",
                 ),
@@ -96,21 +99,20 @@ def navbar() -> rx.Component:
             ),
             size="4"
         ),
-        width="100%", bg="rgba(255, 255, 255, 0.95)", backdrop_filter="blur(10px)", 
-        border_bottom="1px solid #E2E8F0", position="sticky", top="0", z_index="1000",
+        width="100%", bg="#F9F6F0", border_bottom="1px solid #E5E0D8", position="sticky", top="0", z_index="1000",
     )
 
 def seccion_proposito() -> rx.Component:
     return rx.vstack(
-        rx.heading("Más que productos, creamos recuerdos.", size=rx.breakpoints(initial="5", md="6"), weight="bold", color="#0F172A", text_align="center"),
-        rx.text("En SubliCaracas transformamos tus ideas en regalos únicos. Calidad garantizada y entregas en toda Venezuela.", color="#64748B", size="3", text_align="center", max_width="600px", margin_top="1em"),
+        rx.heading("Más que productos, creamos recuerdos.", size=rx.breakpoints(initial="5", md="6"), weight="bold", color="#2C2C2C", text_align="center"),
+        rx.text("En SubliCaracas transformamos tus ideas en regalos únicos. Calidad garantizada y entregas en toda Venezuela.", color="#6B7280", size="3", text_align="center", max_width="600px", margin_top="1em"),
         rx.flex(
-            rx.vstack(rx.icon(tag="award", size=32, color="#4F46E5"), rx.heading("Calidad Premium", size="3", weight="bold", color="#0F172A"), rx.text("Materiales duraderos y colores vibrantes.", size="1", color="#64748B"), align="center", width="250px"),
-            rx.vstack(rx.icon(tag="truck", size=32, color="#4F46E5"), rx.heading("Envíos Rápidos", size="3", weight="bold", color="#0F172A"), rx.text("Despachos a todo el país por MRW/Zoom.", size="1", color="#64748B"), align="center", width="250px"),
-            rx.vstack(rx.icon(tag="heart", size=32, color="#4F46E5"), rx.heading("Diseño Único", size="3", weight="bold", color="#0F172A"), rx.text("Tú imaginas, nosotros lo sublimamos.", size="1", color="#64748B"), align="center", width="250px"),
+            rx.vstack(rx.icon(tag="award", size=32, color="#D96B43"), rx.heading("Calidad Premium", size="3", weight="bold", color="#2C2C2C"), rx.text("Materiales duraderos.", size="1", color="#6B7280"), align="center", width="250px"),
+            rx.vstack(rx.icon(tag="truck", size=32, color="#D96B43"), rx.heading("Envíos Rápidos", size="3", weight="bold", color="#2C2C2C"), rx.text("Despachos a todo el país.", size="1", color="#6B7280"), align="center", width="250px"),
+            rx.vstack(rx.icon(tag="heart", size=32, color="#D96B43"), rx.heading("Diseño Único", size="3", weight="bold", color="#2C2C2C"), rx.text("Tú imaginas, nosotros lo hacemos.", size="1", color="#6B7280"), align="center", width="250px"),
             direction=rx.breakpoints(initial="column", md="row"), justify="center", gap="2em", width="100%", margin_top="3em"
         ),
-        padding="4em 2em", width="100%", bg="#F8FAFC", align="center"
+        padding="4em 2em", width="100%", bg="#FFFFFF", align="center"
     )
 
 def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str) -> rx.Component:
@@ -119,23 +121,23 @@ def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str) -> rx.C
         rx.vstack(
             rx.box(
                 rx.image(src=imagen, width="100%", height="200px", object_fit="cover"),
-                rx.badge(f"${precio:.2f}", color_scheme="indigo", variant="solid", size="2", position="absolute", bottom="10px", right="10px"),
+                rx.badge(f"${precio:.2f}", color_scheme="orange", variant="solid", size="2", position="absolute", bottom="10px", right="10px"),
                 position="relative", width="100%",
             ),
             rx.vstack(
-                rx.heading(nombre, size="3", weight="bold", color="#0F172A"),
-                rx.text(desc, size="1", color="#64748B", min_height="30px"),
-                rx.text(f"Bs. {precio_bs}", color="#94A3B8", size="1"),
+                rx.heading(nombre, size="3", weight="bold", color="#2C2C2C"),
+                rx.text(desc, size="1", color="#6B7280", min_height="30px"),
+                rx.text(f"Bs. {precio_bs}", color="#9CA3AF", size="1"),
                 rx.button(
                     rx.icon(tag="plus", size=14), "Agregar", 
                     on_click=lambda: State.agregar_al_carrito(nombre, precio),
-                    bg="#0F172A", color="white", width="100%", border_radius="6px", size="2", _hover={"bg": "#4F46E5"}
+                    bg="#2C2C2C", color="white", width="100%", border_radius="6px", size="2", _hover={"bg": "#D96B43"}
                 ),
                 align_items="start", width="100%", padding="1em",
             ),
             spacing="0", width="100%", bg="white",
         ),
-        border="1px solid #E2E8F0", border_radius="12px", overflow="hidden", width="100%",
+        border="1px solid #E5E0D8", border_radius="12px", overflow="hidden", width="100%",
         _hover={"box_shadow": "0 10px 15px -3px rgba(0,0,0,0.1)", "transform": "translateY(-2px)", "transition": "0.3s"}
     )
 
@@ -148,42 +150,46 @@ def galeria_trabajos() -> rx.Component:
         {"nombre": "Pijama Cuadros", "precio": 20.00, "foto": "/pijama5.jpeg", "desc": "Clásico."},
     ]
     return rx.vstack(
-        rx.heading("Nuestras Creaciones", size="5", weight="bold", color="#0F172A"),
+        rx.heading("Nuestras Creaciones", size="5", weight="bold", color="#2C2C2C"),
         rx.grid(
             *[tarjeta_producto(p["nombre"], p["precio"], p["foto"], p["desc"]) for p in productos],
             columns=rx.breakpoints(initial="1", sm="2", md="3", lg="5"),
             spacing="4", width="100%", margin_top="1em",
         ),
-        padding="4em 2em", width="100%", align="center", bg="#FFFFFF", id="galeria"
+        padding="4em 2em", width="100%", align="center", bg="#F9F6F0", id="galeria"
     )
 
 def seccion_personalizador() -> rx.Component:
     return rx.box(
         rx.flex(
-            # Lado Izquierdo: Gorra (El logo ahora está perfectamente centrado)
+            # Lado Izquierdo: Gorra con Logo Centrado y Botón para Quitar
             rx.box(
                 rx.box(
                     rx.image(
                         src="https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
                         width="100%", border_radius="8px"
                     ),
-                    # Contenedor absoluto que cubre la imagen para centrar el logo
                     rx.center(
                         rx.vstack(
                             rx.cond(
                                 State.logo_subido.length() > 0,
-                                rx.image(src=State.logo_subido[0], width="80px", mix_blend_mode="multiply", filter="contrast(120%)")
+                                rx.image(src=State.logo_subido[0], width="70px", mix_blend_mode="multiply", filter="contrast(120%)")
                             ),
                             rx.cond(
                                 State.texto_cliente != "",
-                                rx.text(State.texto_cliente, font_size="14px", font_weight="bold", color="#0F172A", text_align="center")
+                                rx.text(State.texto_cliente, font_size="14px", font_weight="bold", color="#2C2C2C", text_align="center")
                             ),
                             align="center",
-                            padding_top="5%" # Ajuste fino para que caiga en el panel de la gorra
+                            padding_top="5%"
                         ),
                         position="absolute", top="0", left="0", width="100%", height="100%"
                     ),
                     position="relative", width="100%", max_width="400px", margin="0 auto"
+                ),
+                # Botón para quitar el logo
+                rx.cond(
+                    State.logo_subido.length() > 0,
+                    rx.button("Quitar logo", on_click=State.limpiar_logo, size="1", variant="soft", color_scheme="red", margin_top="1em", width="100%")
                 ),
                 width=rx.breakpoints(initial="100%", md="50%"),
                 margin_bottom=rx.breakpoints(initial="2em", md="0"),
@@ -191,22 +197,22 @@ def seccion_personalizador() -> rx.Component:
             
             # Lado Derecho: Controles
             rx.vstack(
-                rx.heading("Diseña tu gorra", size="5", weight="bold", color="#0F172A"),
-                rx.text("Sube tu logo y escribe tu texto.", color="#64748B", size="2"),
-                rx.divider(margin_y="1em", border_color="#E2E8F0"),
+                rx.heading("Diseña tu gorra", size="5", weight="bold", color="#2C2C2C"),
+                rx.text("Sube tu logo y escribe tu texto.", color="#6B7280", size="2"),
+                rx.divider(margin_y="1em", border_color="#E5E0D8"),
                 
-                rx.text("1. Sube tu imagen (PNG)", weight="bold", size="2", color="#0F172A"),
+                rx.text("1. Sube tu imagen (PNG)", weight="bold", size="2", color="#2C2C2C"),
                 rx.upload(
-                    rx.vstack(rx.icon(tag="image", size=24, color="#4F46E5"), rx.text("Arrastra tu diseño aquí", size="1", color="#64748B"), align="center"),
-                    id="logo_upload", border="2px dashed #CBD5E1", padding="2em", border_radius="8px", background="#F8FAFC",
+                    rx.vstack(rx.icon(tag="image", size=24, color="#D96B43"), rx.text("Arrastra tu diseño aquí", size="1", color="#6B7280"), align="center"),
+                    id="logo_upload", border="2px dashed #D6D3D1", padding="2em", border_radius="8px", background="#FFFFFF",
                     on_drop=State.handle_upload(rx.upload_files(upload_id="logo_upload")), width="100%",
-                    _hover={"border_color": "#4F46E5", "background": "#EEF2FF"}
+                    _hover={"border_color": "#D96B43", "background": "#FFF7ED"}
                 ),
-                rx.text("2. Escribe tu texto", weight="bold", size="2", color="#0F172A", margin_top="1.5em"),
+                rx.text("2. Escribe tu texto", weight="bold", size="2", color="#2C2C2C", margin_top="1.5em"),
                 rx.input(placeholder="Ej: Feliz Cumpleaños...", value=State.texto_cliente, on_change=State.set_texto_cliente, width="100%", size="3", margin_bottom="1.5em"),
                 rx.button(
                     "Agregar a cotización", on_click=lambda: State.agregar_al_carrito("Gorra Personalizada", 12.00),
-                    bg="#4F46E5", color="white", width="100%", size="3", border_radius="6px", _hover={"bg": "#4338CA"}
+                    bg="#D96B43", color="white", width="100%", size="3", border_radius="6px", _hover={"bg": "#C25733"}
                 ),
                 width=rx.breakpoints(initial="100%", md="50%"),
                 align_items="start",
@@ -215,7 +221,7 @@ def seccion_personalizador() -> rx.Component:
             direction=rx.breakpoints(initial="column", md="row"),
             width="100%", align="center", spacing="6", padding="2em"
         ),
-        background="#FFFFFF", border_radius="16px", border="1px solid #E2E8F0", width="100%",
+        background="#FFFFFF", border_radius="16px", border="1px solid #E5E0D8", width="100%",
         box_shadow="0 4px 6px -1px rgba(0,0,0,0.05)"
     )
 
@@ -224,14 +230,18 @@ def cotizador_flotante() -> rx.Component:
         State.carrito.length() > 0,
         rx.box(
             rx.vstack(
-                rx.hstack(rx.heading("Tu Cotización", size="4", weight="bold", color="#0F172A"), rx.spacer(), rx.text(f"${State.total_usd:.2f}", color="#4F46E5", weight="bold", size="4")),
-                rx.text(f"Total en Bs: {State.total_bs}", color="#64748B", size="2"),
+                rx.hstack(
+                    rx.heading("Tu Cotización", size="4", weight="bold", color="#2C2C2C"),
+                    rx.spacer(),
+                    rx.text(f"${State.total_usd:.2f}", color="#D96B43", weight="bold", size="4")
+                ),
+                rx.text(f"Total en Bs: {State.total_bs}", color="#6B7280", size="2"),
                 rx.divider(margin_y="0.5em"),
                 rx.vstack(
                     rx.foreach(
                         State.carrito, 
                         lambda item, i: rx.hstack(
-                            rx.text(f"{item['nombre']} (x{item['cantidad']})", size="2", weight="medium", color="#0F172A"),
+                            rx.text(f"{item['nombre']} (x{item['cantidad']})", size="2", weight="medium", color="#2C2C2C"),
                             rx.spacer(),
                             rx.icon(tag="minus", size=16, cursor="pointer", on_click=lambda: State.restar_cantidad(i), color="#94A3B8", _hover={"color": "#EF4444"}),
                             rx.text(item['cantidad'], size="2", weight="bold"),
@@ -242,7 +252,9 @@ def cotizador_flotante() -> rx.Component:
                     ),
                     max_height="180px", overflow_y="auto", width="100%"
                 ),
-                rx.link(rx.button("Pedir por WhatsApp", bg="#25D366", color="white", width="100%", margin_top="1.5em", size="3", border_radius="6px"), href=State.link_whatsapp_cotizacion, is_external=True, width="100%"),
+                # Botón para vaciar todo el carrito
+                rx.button("Vaciar Carrito", on_click=State.vaciar_carrito, size="1", variant="ghost", color_scheme="red", width="100%", margin_top="0.5em"),
+                rx.link(rx.button("Pedir por WhatsApp", bg="#25D366", color="white", width="100%", margin_top="0.5em", size="3", border_radius="6px"), href=State.link_whatsapp_cotizacion, is_external=True, width="100%"),
                 padding="1.5em", width="100%"
             ),
             position="fixed", bottom="15px", right="15px", width="calc(100% - 30px)", max_width="320px", background="white", border_radius="16px", z_index="9999", box_shadow="0 10px 25px -5px rgba(0,0,0,0.1)"
@@ -257,12 +269,12 @@ def index() -> rx.Component:
         # HERO SECTION
         rx.box(
             rx.image(src="https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=1920&auto=format&fit=crop", width="100%", height="100%", object_fit="cover", position="absolute", top="0", left="0"),
-            rx.box(position="absolute", top="0", left="0", width="100%", height="100%", background="linear-gradient(to right, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.4) 100%)"),
+            rx.box(position="absolute", top="0", left="0", width="100%", height="100%", background="linear-gradient(to right, rgba(44,44,44,0.9) 0%, rgba(44,44,44,0.5) 100%)"),
             rx.vstack(
-                rx.badge("TEXTILES Y SUBLIMACIÓN", color_scheme="indigo", variant="solid", size="1"),
+                rx.badge("TEXTILES Y SUBLIMACIÓN", color_scheme="orange", variant="solid", size="1"),
                 rx.heading("Creamos lo que imaginas.", size=rx.breakpoints(initial="6", sm="7", md="8"), weight="bold", text_align="left", color="white", line_height="1.1"),
                 rx.text("Tazas, gorras y franelas personalizadas en Caracas.", color="rgba(255,255,255,0.8)", size=rx.breakpoints(initial="2", sm="3", md="4")),
-                rx.button("Ver Catálogo", on_click=rx.call_script("document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})"), size="3", bg="#4F46E5", color="white", border_radius="6px", margin_top="1.5em", _hover={"bg": "#4338CA"}),
+                rx.button("Ver Catálogo", on_click=rx.call_script("document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})"), size="3", bg="#D96B43", color="white", border_radius="6px", margin_top="1.5em", _hover={"bg": "#C25733"}),
                 align="start", padding=rx.breakpoints(initial="4em 1em", sm="6em 2em", md="8em 4em"), width="100%", max_width="1200px", z_index="2",
             ),
             position="relative", width="100%", min_height="60vh", display="flex", align_items="center", justify_content="center"
@@ -273,7 +285,7 @@ def index() -> rx.Component:
         
         # CATÁLOGO
         rx.vstack(
-            rx.heading("Catálogo", size="6", weight="bold", color="#0F172A"),
+            rx.heading("Catálogo", size="6", weight="bold", color="#2C2C2C"),
             rx.grid(
                 tarjeta_producto("Taza Cerámica", 8.00, "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acabado brillante."),
                 tarjeta_producto("Gorra Premium", 12.00, "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Malla transpirable."),

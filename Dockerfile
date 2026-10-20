@@ -1,43 +1,46 @@
 FROM python:3.11-slim
 
-# Instalamos las herramientas necesarias
+# 1. Instalamos Node.js, npm, unzip, Caddy y certificados
 RUN apt-get update && apt-get install -y nodejs npm unzip caddy ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Instalamos Bun manualmente para evitar fallos de SSL
+# 2. Instalamos Bun manualmente para evitar fallos de SSL
 RUN npm install -g bun
 
 WORKDIR /app
 
+# 3. Copiamos e instalamos dependencias de Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 4. Copiamos el resto del proyecto
 COPY . .
 
+# 5. Forzamos el uso de npm y desactivamos verificación SSL
 ENV REFLEX_USE_NPM=1
 ENV SSL_NO_VERIFY=1
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
+# 6. Inicializamos Reflex y construimos el frontend
 RUN reflex init --template blank
 RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web
 
-# CONFIGURACIÓN DE CADDY PARA PERMITIR WEBSOCKETS (La clave del arreglo)
+# 7. Configuración de Caddy con soporte explícito para WebSockets
 RUN cat > Caddyfile <<EOF
 :{\$PORT} {
     encode gzip
     
-    # Permitir conexiones en tiempo real (Websockets)
-    @ws {
-        header Connection *Upgrade*
-        header Upgrade    websocket
+    # Proxy para WebSockets (eventos en tiempo real)
+    reverse_proxy /_event/* localhost:8000 {
+        transport http {
+            read_timeout 300s
+        }
     }
-    reverse_proxy @ws localhost:8000
     
-    # Rutas del backend de Python
-    reverse_proxy /_event* localhost:8000
+    # Proxy para otras rutas del backend
     reverse_proxy /ping localhost:8000
-    reverse_proxy /_upload* localhost:8000
+    reverse_proxy /_upload/* localhost:8000
 
-    # Servir el Frontend
+    # Servir el frontend estático
     root * /srv
     try_files {path} {path}/ /404.html
     file_server
@@ -45,5 +48,4 @@ RUN cat > Caddyfile <<EOF
 EOF
 
 EXPOSE 10000
-
 CMD ["sh", "-c", "caddy start && reflex run --env prod --backend-only"]
