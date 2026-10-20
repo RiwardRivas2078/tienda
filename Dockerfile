@@ -12,10 +12,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 3. Copiamos el resto del proyecto
 COPY . .
 
-# 4. Forzamos a Reflex a usar npm y configuramos el registro para evitar errores de certificado
+# 4. Forzamos el uso de npm, un registro seguro y desactivamos la verificación SSL
 ENV REFLEX_USE_NPM=1
 ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV SSL_NO_VERIFY=1
 
 # 5. Inicializamos Reflex y construimos el frontend
 RUN reflex init --template blank
