@@ -9,6 +9,7 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+# --- SCRAPING BCV ---
 @lru_cache(maxsize=1)
 def obtener_tasa_bcv():
     try:
@@ -22,6 +23,7 @@ def obtener_tasa_bcv():
 TASA_ACTUAL = obtener_tasa_bcv()
 FECHA_ACTUAL = datetime.now().strftime("%d/%m/%Y")
 
+# --- ESTADO ---
 class State(rx.State):
     texto_cliente: str = ""
     logo_subido: list[str] = []
@@ -88,6 +90,8 @@ TEXT_DARK = "#1C1917"
 TEXT_GRAY = "#78716C"
 ACCENT = "#D96B43"       
 
+# --- COMPONENTES ---
+
 def ticker_tasa() -> rx.Component:
     return rx.box(
         rx.hstack(
@@ -130,7 +134,6 @@ def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str) -> rx.C
     return rx.box(
         rx.vstack(
             rx.box(
-                # Aseguramos que la imagen esté centrada y cubra el espacio
                 rx.image(src=imagen, width="100%", height="240px", object_fit="cover", object_position="center"),
                 rx.badge(f"${precio:.2f}", color_scheme="orange", variant="solid", size="1", position="absolute", top="12px", right="12px", border_radius="full"),
                 position="relative", width="100%",
@@ -190,7 +193,11 @@ def seccion_personalizador() -> rx.Component:
             rx.vstack(
                 rx.text("1. Sube tu logo (PNG)", weight="bold", size="2", color=TEXT_DARK),
                 rx.upload(
-                    rx.vstack(rx.icon(tag="upload-cloud", size=32, color=ACCENT), rx.text("Haz clic o arrastra tu archivo", size="2", color=TEXT_GRAY), align="center"),
+                    rx.vstack(
+                        rx.icon(tag="cloud_upload", size=32, color=ACCENT), # Icono corregido
+                        rx.text("Haz clic o arrastra tu archivo", size="2", color=TEXT_GRAY), 
+                        align="center"
+                    ),
                     id="logo_upload", border="2px dashed #D6D3D1", padding="2.5em", border_radius="12px", background="#FFFFFF",
                     on_drop=State.handle_upload(rx.upload_files(upload_id="logo_upload")), width="100%",
                     _hover={"border_color": ACCENT, "background": "#FFF7ED"}
@@ -236,7 +243,7 @@ def footer() -> rx.Component:
         width="100%"
     )
 
-# --- CARRITO FLOTANTE RESTAURADO ---
+# --- CARRITO FLOTANTE ---
 def cotizador_flotante() -> rx.Component:
     return rx.cond(
         State.carrito.length() > 0,
@@ -295,7 +302,7 @@ def index() -> rx.Component:
     return rx.vstack(
         navbar(),
         boton_flotante_whatsapp(),
-        cotizador_flotante(), # <-- Restaurado
+        cotizador_flotante(),
         
         # HERO SECTION
         rx.box(
@@ -315,20 +322,17 @@ def index() -> rx.Component:
             position="relative", width="100%", min_height="70vh", display="flex", align_items="center", justify_content="center", overflow="hidden"
         ),
         
-        # CATÁLOGO CON 7 PRODUCTOS (3 originales + 4 nuevos)
+        # CATÁLOGO
         rx.vstack(
             rx.heading("Catálogo Destacado", size="6", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
             rx.grid(
-                # Los 3 originales
                 tarjeta_producto("Taza Cerámica", 8.00, "https://images.unsplash.com/photo-1577937927133-66ef06acdf18?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acabado brillante."),
                 tarjeta_producto("Gorra Premium", 12.00, "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Malla transpirable."),
                 tarjeta_producto("Franela Algodón", 15.00, "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Corte moderno."),
-                # Los 4 nuevos
                 tarjeta_producto("Termo Deportivo", 22.00, "https://images.unsplash.com/photo-1602143407151-7111542de6e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acero inoxidable."),
                 tarjeta_producto("Llavero Personalizado", 5.00, "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acrílico resistente."),
                 tarjeta_producto("Cojín Sublimado", 12.00, "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Tela suave y cómoda."),
                 tarjeta_producto("Bolso Tote", 10.00, "https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Ideal para el día a día."),
-                
                 columns=rx.breakpoints(initial="2", sm="2", md="3", lg="4"),
                 spacing="6", width="100%", margin_top="2em",
             ),
