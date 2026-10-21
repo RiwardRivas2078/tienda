@@ -27,9 +27,6 @@ FECHA_ACTUAL = datetime.now().strftime("%d/%m/%Y")
 class State(rx.State):
     texto_cliente: str = ""
     logo_subido: list[str] = []
-    
-    # Carrito: Ahora incluye la talla
-    # {"nombre": str, "precio": float, "cantidad": int, "talla": str}
     carrito: list[dict] = []
     TASA_BCV: float = TASA_ACTUAL
     FECHA: str = FECHA_ACTUAL
@@ -53,7 +50,7 @@ class State(rx.State):
     def abrir_modal_tallas(self, nombre: str, precio: float):
         self.producto_pendiente_nombre = nombre
         self.producto_pendiente_precio = precio
-        self.talla_seleccionada = "M" # Talla por defecto
+        self.talla_seleccionada = "M"
         self.mostrar_modal = True
 
     def cerrar_modal(self):
@@ -64,7 +61,6 @@ class State(rx.State):
         self.mostrar_modal = False
 
     def agregar_al_carrito(self, nombre: str, precio: float, talla: str = "Única"):
-        # Verificamos si el producto exacto (con la misma talla) ya está en el carrito
         for item in self.carrito:
             if item["nombre"] == nombre and item["talla"] == talla:
                 item["cantidad"] += 1
@@ -101,7 +97,6 @@ class State(rx.State):
         mensaje = "Hola SubliCaracas, quiero confirmar mi pedido:\n\n"
         for item in self.carrito:
             subtotal = item['precio'] * item['cantidad']
-            # Formato: - Pijama Navideña (Talla: M) x2 ($40.00)
             mensaje += f"- {item['nombre']} (Talla: {item['talla']}) x{item['cantidad']} (${subtotal:.2f})\n"
         mensaje += f"\nTotal: ${self.total_usd:.2f} / {self.total_bs}"
         return f"https://wa.me/584242446795?text={urllib.parse.quote(mensaje)}"
@@ -154,32 +149,28 @@ def navbar() -> rx.Component:
         spacing="0", width="100%"
     )
 
-# --- MODAL DE SELECCIÓN DE TALLAS ---
+# --- MODAL DE SELECCIÓN DE TALLAS (Corregido) ---
 def modal_tallas() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.content(
             rx.vstack(
-                rx.dialog.title(
-                    rx.heading("Selecciona tu talla", size="5", weight="bold", color=TEXT_DARK),
-                ),
+                rx.heading("Selecciona tu talla", size="5", weight="bold", color=TEXT_DARK),
                 rx.text(f"Producto: {State.producto_pendiente_nombre}", color=TEXT_GRAY, size="2", margin_bottom="1em"),
                 
-                # Botones de tallas
+                # Botones de tallas (Usando bg y color en lugar de variant para evitar errores)
                 rx.hstack(
                     *[rx.button(
                         talla, 
                         on_click=lambda t=talla: State.set_talla_seleccionada(t),
-                        variant=rx.cond(State.talla_seleccionada == talla, "solid", "outline"),
-                        color_scheme=rx.cond(State.talla_seleccionada == talla, "orange", "gray"),
+                        bg=rx.cond(State.talla_seleccionada == talla, ACCENT, "#F5F5F4"),
+                        color=rx.cond(State.talla_seleccionada == talla, "white", TEXT_DARK),
                         border_radius="8px", width="60px", size="3"
                     ) for talla in ["S", "M", "L", "XL"]],
                     spacing="3", justify="center", width="100%", margin_y="1.5em"
                 ),
                 
-                rx.flex(
-                    rx.dialog.close(
-                        rx.button("Cancelar", variant="soft", color_scheme="gray", width="100%", border_radius="8px", on_click=State.cerrar_modal),
-                    ),
+                rx.hstack(
+                    rx.button("Cancelar", variant="soft", color_scheme="gray", width="100%", border_radius="8px", on_click=State.cerrar_modal),
                     rx.button("Agregar al Carrito", bg=ACCENT, color="white", width="100%", border_radius="8px", on_click=State.confirmar_agregar),
                     spacing="3", width="100%", margin_top="1em"
                 ),
@@ -191,16 +182,15 @@ def modal_tallas() -> rx.Component:
         on_open_change=State.set_mostrar_modal
     )
 
-# --- TARJETA DE PRODUCTO (Modificada para saber si tiene tallas) ---
+# --- TARJETA DE PRODUCTO (Lógica corregida con if/else de Python) ---
 def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str, tiene_tallas: bool = False) -> rx.Component:
     precio_bs = f"Bs. {(precio * State.TASA_BCV):,.2f}"
     
-    # Lógica del botón: Si tiene tallas abre el modal, sino agrega directo.
-    accion_boton = rx.cond(
-        tiene_tallas,
-        lambda: State.abrir_modal_tallas(nombre, precio),
-        lambda: State.agregar_al_carrito(nombre, precio, "Única")
-    )
+    # La magia aquí: Usamos if de Python normal porque 'tiene_tallas' es un True/False fijo.
+    if tiene_tallas:
+        accion_boton = lambda: State.abrir_modal_tallas(nombre, precio)
+    else:
+        accion_boton = lambda: State.agregar_al_carrito(nombre, precio, "Única")
 
     return rx.box(
         rx.vstack(
@@ -241,7 +231,6 @@ def galeria_trabajos() -> rx.Component:
     return rx.vstack(
         rx.heading("Colección de Pijamas", size="6", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
         rx.grid(
-            # Aquí activamos 'tiene_tallas=True' para las pijamas
             *[tarjeta_producto(p["nombre"], p["precio"], p["foto"], p["desc"], tiene_tallas=True) for p in productos],
             columns=rx.breakpoints(initial="2", sm="2", md="3", lg="5"),
             spacing="4", width="100%", margin_top="2em",
@@ -315,7 +304,6 @@ def footer() -> rx.Component:
         width="100%"
     )
 
-# --- CARRITO FLOTANTE (Modificado para mostrar tallas) ---
 def cotizador_flotante() -> rx.Component:
     return rx.cond(
         State.carrito.length() > 0,
@@ -332,7 +320,6 @@ def cotizador_flotante() -> rx.Component:
                     rx.foreach(
                         State.carrito, 
                         lambda item, i: rx.hstack(
-                            # Mostramos la talla en el carrito
                             rx.text(f"{item['nombre']} (Talla: {item['talla']}) x{item['cantidad']}", size="2", weight="medium", color=TEXT_DARK),
                             rx.spacer(),
                             rx.icon(tag="minus", size=16, cursor="pointer", on_click=lambda: State.restar_cantidad(i), color="#94A3B8", _hover={"color": "#EF4444"}),
@@ -352,7 +339,6 @@ def cotizador_flotante() -> rx.Component:
         )
     )
 
-# --- BOTÓN FLOTANTE DE WHATSAPP ---
 def boton_flotante_whatsapp() -> rx.Component:
     return rx.link(
         rx.image(
@@ -373,7 +359,7 @@ def boton_flotante_whatsapp() -> rx.Component:
 
 def index() -> rx.Component:
     return rx.vstack(
-        modal_tallas(), # <-- Agregamos el modal aquí
+        modal_tallas(),
         navbar(),
         boton_flotante_whatsapp(),
         cotizador_flotante(),
@@ -396,13 +382,13 @@ def index() -> rx.Component:
             position="relative", width="100%", min_height="70vh", display="flex", align_items="center", justify_content="center", overflow="hidden"
         ),
         
-        # CATÁLOGO PRINCIPAL (Tazas, Gorras, etc. - Talla Única)
+        # CATÁLOGO
         rx.vstack(
             rx.heading("Catálogo Destacado", size="6", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
             rx.grid(
                 tarjeta_producto("Taza Cerámica", 8.00, "https://images.unsplash.com/photo-1577937927133-66ef06acdf18?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acabado brillante.", tiene_tallas=False),
                 tarjeta_producto("Gorra Premium", 12.00, "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Malla transpirable.", tiene_tallas=False),
-                tarjeta_producto("Franela Algodón", 15.00, "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Corte moderno.", tiene_tallas=True), # Franela SÍ tiene tallas
+                tarjeta_producto("Franela Algodón", 15.00, "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Corte moderno.", tiene_tallas=True),
                 tarjeta_producto("Termo Deportivo", 22.00, "https://images.unsplash.com/photo-1602143407151-7111542de6e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acero inoxidable.", tiene_tallas=False),
                 tarjeta_producto("Llavero Personalizado", 5.00, "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acrílico resistente.", tiene_tallas=False),
                 tarjeta_producto("Cojín Sublimado", 12.00, "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Tela suave y cómoda.", tiene_tallas=False),
