@@ -7,10 +7,8 @@ from datetime import datetime
 from functools import lru_cache
 import urllib3
 
-# Desactivar advertencias de SSL
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# --- SCRAPING BCV ---
 @lru_cache(maxsize=1)
 def obtener_tasa_bcv():
     try:
@@ -24,7 +22,6 @@ def obtener_tasa_bcv():
 TASA_ACTUAL = obtener_tasa_bcv()
 FECHA_ACTUAL = datetime.now().strftime("%d/%m/%Y")
 
-# --- ESTADO ---
 class State(rx.State):
     texto_cliente: str = ""
     logo_subido: list[str] = []
@@ -84,14 +81,12 @@ class State(rx.State):
 
 WHATSAPP_NUMERO = "584242446795"
 
-# --- PALETA DE COLORES (BLANCO Y TERRACOTA) ---
+# --- PALETA DE COLORES BOUTIQUE TEXTIL ---
 BG_WHITE = "#FFFFFF"
-BG_SOFT = "#F9F6F0"      # Crema muy suave
-TEXT_DARK = "#1C1917"    # Carbón
+BG_SOFT = "#FAFAF9"      
+TEXT_DARK = "#1C1917"    
 TEXT_GRAY = "#78716C"
-ACCENT = "#D96B43"       # Terracota
-
-# --- COMPONENTES ---
+ACCENT = "#D96B43"       
 
 def ticker_tasa() -> rx.Component:
     return rx.box(
@@ -206,7 +201,6 @@ def seccion_personalizador() -> rx.Component:
                 rx.text("2. Describe tu idea", weight="bold", size="2", color=TEXT_DARK, margin_top="1.5em"),
                 rx.input(placeholder="Ej: Gorra con el logo de mi empresa...", value=State.texto_cliente, on_change=State.set_texto_cliente, width="100%", size="3", margin_bottom="1.5em", border_radius="8px", bg="#FFFFFF", border="1px solid #D6D3D1", color=TEXT_DARK),
                 
-                # BOTÓN DE WHATSAPP CON ICONO REAL
                 rx.link(
                     rx.button(
                         rx.image(src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg", width="20px", margin_right="8px"),
@@ -241,7 +235,6 @@ def footer() -> rx.Component:
         width="100%"
     )
 
-# --- BOTÓN FLOTANTE DE WHATSAPP ---
 def boton_flotante_whatsapp() -> rx.Component:
     return rx.link(
         rx.image(
@@ -265,13 +258,12 @@ def index() -> rx.Component:
         navbar(),
         boton_flotante_whatsapp(),
         
-        # --- HERO SECTION (Limpio, Luminoso) ---
+        # HERO SECTION
         rx.box(
             rx.image(
                 src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1920&auto=format&fit=crop", 
                 width="100%", height="100%", object_fit="cover", position="absolute", top="0", left="0", z_index="0"
             ),
-            # Gradiente suave para que el texto resalte sin ser oscuro
             rx.box(position="absolute", top="0", left="0", width="100%", height="100%", background="linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%)", z_index="1"),
             
             rx.vstack(
