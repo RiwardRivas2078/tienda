@@ -4,32 +4,34 @@ import base64
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from functools import lru_cache
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# --- SCRAPING BCV ---
-@lru_cache(maxsize=1)
+# --- FUNCIÓN PARA OBTENER LA TASA (Sin caché para que se actualice siempre) ---
 def obtener_tasa_bcv():
     try:
-        response = requests.get("https://www.bcv.org.ve/", verify=False, timeout=15)
+        response = requests.get("https://www.bcv.org.ve/", verify=False, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         tasa_raw = soup.find("div", {"id": "dolar"}).find("strong").text.strip()
         return float(tasa_raw.replace('.', '').replace(',', '.'))
     except Exception:
-        return 36.50
-
-TASA_ACTUAL = obtener_tasa_bcv()
-FECHA_ACTUAL = datetime.now().strftime("%d/%m/%Y")
+        return 36.50 # Respaldo
 
 # --- ESTADO ---
 class State(rx.State):
     texto_cliente: str = ""
     logo_subido: list[str] = []
     carrito: list[dict] = []
-    TASA_BCV: float = TASA_ACTUAL
-    FECHA: str = FECHA_ACTUAL
+    
+    # Inicializamos con valores por defecto
+    TASA_BCV: float = 36.50
+    FECHA: str = datetime.now().strftime("%d/%m/%Y")
+
+    def cargar_tasa_actualizada(self):
+        # Esta función se ejecuta CADA VEZ que alguien entra a la página
+        self.TASA_BCV = obtener_tasa_bcv()
+        self.FECHA = datetime.now().strftime("%d/%m/%Y")
 
     # Variables para el modal de tallas
     mostrar_modal: bool = False
@@ -149,7 +151,6 @@ def navbar() -> rx.Component:
         spacing="0", width="100%"
     )
 
-# --- MODAL DE SELECCIÓN DE TALLAS (Corregido) ---
 def modal_tallas() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.content(
@@ -157,7 +158,6 @@ def modal_tallas() -> rx.Component:
                 rx.heading("Selecciona tu talla", size="5", weight="bold", color=TEXT_DARK),
                 rx.text(f"Producto: {State.producto_pendiente_nombre}", color=TEXT_GRAY, size="2", margin_bottom="1em"),
                 
-                # Botones de tallas (Usando bg y color en lugar de variant para evitar errores)
                 rx.hstack(
                     *[rx.button(
                         talla, 
@@ -182,11 +182,10 @@ def modal_tallas() -> rx.Component:
         on_open_change=State.set_mostrar_modal
     )
 
-# --- TARJETA DE PRODUCTO (Lógica corregida con if/else de Python) ---
+# --- TARJETA DE PRODUCTO (Corregida para móvil) ---
 def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str, tiene_tallas: bool = False) -> rx.Component:
     precio_bs = f"Bs. {(precio * State.TASA_BCV):,.2f}"
     
-    # La magia aquí: Usamos if de Python normal porque 'tiene_tallas' es un True/False fijo.
     if tiene_tallas:
         accion_boton = lambda: State.abrir_modal_tallas(nombre, precio)
     else:
@@ -195,24 +194,26 @@ def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str, tiene_t
     return rx.box(
         rx.vstack(
             rx.box(
-                rx.image(src=imagen, width="100%", height="240px", object_fit="cover", object_position="center"),
-                rx.badge(f"${precio:.2f}", color_scheme="orange", variant="solid", size="1", position="absolute", top="12px", right="12px", border_radius="full"),
+                rx.image(src=imagen, width="100%", height="200px", object_fit="cover", object_position="center"), # Altura reducida para móvil
+                rx.badge(f"${precio:.2f}", color_scheme="orange", variant="solid", size="1", position="absolute", top="8px", right="8px", border_radius="full"),
                 position="relative", width="100%",
             ),
             rx.vstack(
-                rx.heading(nombre, size="3", weight="bold", color=TEXT_DARK),
-                rx.text(desc, size="1", color=TEXT_GRAY, min_height="30px"),
-                rx.hstack(
-                    rx.text(f"Bs. {precio_bs}", color=TEXT_GRAY, size="1"),
-                    rx.spacer(),
+                rx.heading(nombre, size="2", weight="bold", color=TEXT_DARK, no_of_lines=2), # Tamaño de texto más pequeño
+                rx.text(desc, size="1", color=TEXT_GRAY, min_height="25px"),
+                
+                # Aquí está el arreglo: Usamos un vstack para que el precio y el botón no se salgan
+                rx.vstack(
+                    rx.text(f"Bs. {precio_bs}", color=TEXT_GRAY, size="1", width="100%", margin_bottom="0.5em"),
                     rx.button(
                         rx.icon(tag="plus", size=14), "Agregar", 
                         on_click=accion_boton,
-                        bg="#F5F5F4", color=TEXT_DARK, border_radius="8px", size="1", 
+                        bg="#F5F5F4", color=TEXT_DARK, border_radius="8px", size="1", width="100%", 
                         _hover={"bg": ACCENT, "color": "white"}
                     ),
+                    width="100%", align_items="start", spacing="1"
                 ),
-                align_items="start", width="100%", padding="1.2em",
+                align_items="start", width="100%", padding="1em", # Padding reducido
             ),
             spacing="0", width="100%", bg="white",
         ),
@@ -411,5 +412,6 @@ def index() -> rx.Component:
         bg=BG_WHITE, min_height="100vh", align="center", width="100%", spacing="0",
     )
 
+# --- INICIALIZACIÓN DE LA APP (Aquí forzamos la actualización de la tasa al cargar) ---
 app = rx.App(style={"font_family": "'Inter', system-ui, sans-serif"})
-app.add_page(index)
+app.add_page(index, on_load=State.cargar_tasa_actualizada) # <--- ESTO ES CLAVE
