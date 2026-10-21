@@ -81,7 +81,7 @@ class State(rx.State):
 
 WHATSAPP_NUMERO = "584242446795"
 
-# --- PALETA DE COLORES BOUTIQUE TEXTIL ---
+# --- PALETA DE COLORES ---
 BG_WHITE = "#FFFFFF"
 BG_SOFT = "#FAFAF9"      
 TEXT_DARK = "#1C1917"    
@@ -130,7 +130,8 @@ def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str) -> rx.C
     return rx.box(
         rx.vstack(
             rx.box(
-                rx.image(src=imagen, width="100%", height="260px", object_fit="cover"),
+                # Aseguramos que la imagen esté centrada y cubra el espacio
+                rx.image(src=imagen, width="100%", height="240px", object_fit="cover", object_position="center"),
                 rx.badge(f"${precio:.2f}", color_scheme="orange", variant="solid", size="1", position="absolute", top="12px", right="12px", border_radius="full"),
                 position="relative", width="100%",
             ),
@@ -141,9 +142,9 @@ def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str) -> rx.C
                     rx.text(f"Bs. {precio_bs}", color=TEXT_GRAY, size="1"),
                     rx.spacer(),
                     rx.button(
-                        rx.icon(tag="plus", size=14), 
+                        rx.icon(tag="plus", size=14), "Agregar", 
                         on_click=lambda: State.agregar_al_carrito(nombre, precio),
-                        bg="#F5F5F4", color=TEXT_DARK, border_radius="full", size="1", 
+                        bg="#F5F5F4", color=TEXT_DARK, border_radius="8px", size="1", 
                         _hover={"bg": ACCENT, "color": "white"}
                     ),
                 ),
@@ -235,6 +236,43 @@ def footer() -> rx.Component:
         width="100%"
     )
 
+# --- CARRITO FLOTANTE RESTAURADO ---
+def cotizador_flotante() -> rx.Component:
+    return rx.cond(
+        State.carrito.length() > 0,
+        rx.box(
+            rx.vstack(
+                rx.hstack(
+                    rx.heading("Tu Cotización", size="4", weight="bold", color=TEXT_DARK),
+                    rx.spacer(),
+                    rx.text(f"${State.total_usd:.2f}", color=ACCENT, weight="bold", size="4")
+                ),
+                rx.text(f"Total en Bs: {State.total_bs}", color=TEXT_GRAY, size="2"),
+                rx.divider(margin_y="0.5em", border_color="#E7E5E4"),
+                rx.vstack(
+                    rx.foreach(
+                        State.carrito, 
+                        lambda item, i: rx.hstack(
+                            rx.text(f"{item['nombre']} (x{item['cantidad']})", size="2", weight="medium", color=TEXT_DARK),
+                            rx.spacer(),
+                            rx.icon(tag="minus", size=16, cursor="pointer", on_click=lambda: State.restar_cantidad(i), color="#94A3B8", _hover={"color": "#EF4444"}),
+                            rx.text(item['cantidad'], size="2", weight="bold"),
+                            rx.icon(tag="plus", size=16, cursor="pointer", on_click=lambda: State.sumar_cantidad(i), color="#94A3B8", _hover={"color": "#10B981"}),
+                            rx.icon(tag="trash-2", size=16, color="#EF4444", cursor="pointer", on_click=lambda: State.quitar_del_carrito(i), margin_left="0.5em"),
+                            width="100%", align="center", spacing="2"
+                        )
+                    ),
+                    max_height="180px", overflow_y="auto", width="100%"
+                ),
+                rx.button("Vaciar Carrito", on_click=State.vaciar_carrito, size="1", variant="ghost", color_scheme="red", width="100%", margin_top="0.5em"),
+                rx.link(rx.button("Pedir por WhatsApp", bg="#25D366", color="white", width="100%", margin_top="0.5em", size="3", border_radius="8px"), href=State.link_whatsapp_cotizacion, is_external=True, width="100%"),
+                padding="1.5em", width="100%"
+            ),
+            position="fixed", bottom="100px", right="20px", width="calc(100% - 40px)", max_width="320px", background="white", border_radius="12px", border="1px solid #E2E8F0", z_index="9998", box_shadow="0 10px 25px -5px rgba(0,0,0,0.1)"
+        )
+    )
+
+# --- BOTÓN FLOTANTE DE WHATSAPP ---
 def boton_flotante_whatsapp() -> rx.Component:
     return rx.link(
         rx.image(
@@ -257,6 +295,7 @@ def index() -> rx.Component:
     return rx.vstack(
         navbar(),
         boton_flotante_whatsapp(),
+        cotizador_flotante(), # <-- Restaurado
         
         # HERO SECTION
         rx.box(
@@ -276,14 +315,21 @@ def index() -> rx.Component:
             position="relative", width="100%", min_height="70vh", display="flex", align_items="center", justify_content="center", overflow="hidden"
         ),
         
-        # CATÁLOGO
+        # CATÁLOGO CON 7 PRODUCTOS (3 originales + 4 nuevos)
         rx.vstack(
             rx.heading("Catálogo Destacado", size="6", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
             rx.grid(
-                tarjeta_producto("Taza Cerámica", 8.00, "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acabado brillante."),
+                # Los 3 originales
+                tarjeta_producto("Taza Cerámica", 8.00, "https://images.unsplash.com/photo-1577937927133-66ef06acdf18?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acabado brillante."),
                 tarjeta_producto("Gorra Premium", 12.00, "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Malla transpirable."),
                 tarjeta_producto("Franela Algodón", 15.00, "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Corte moderno."),
-                columns=rx.breakpoints(initial="2", sm="2", md="3"),
+                # Los 4 nuevos
+                tarjeta_producto("Termo Deportivo", 22.00, "https://images.unsplash.com/photo-1602143407151-7111542de6e8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acero inoxidable."),
+                tarjeta_producto("Llavero Personalizado", 5.00, "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acrílico resistente."),
+                tarjeta_producto("Cojín Sublimado", 12.00, "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Tela suave y cómoda."),
+                tarjeta_producto("Bolso Tote", 10.00, "https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Ideal para el día a día."),
+                
+                columns=rx.breakpoints(initial="2", sm="2", md="3", lg="4"),
                 spacing="6", width="100%", margin_top="2em",
             ),
             padding="4em 2em", width="100%", align="center", bg=BG_WHITE, id="catalogo"
