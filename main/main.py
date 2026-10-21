@@ -84,11 +84,12 @@ class State(rx.State):
 
 WHATSAPP_NUMERO = "584242446795"
 
-# --- PALETA DE COLORES BOUTIQUE TEXTIL ---
-BG_COLOR = "#FAFAF9"      # Blanco roto (muy limpio)
-TEXT_DARK = "#1C1917"     # Carbón oscuro
-TEXT_GRAY = "#78716C"     # Gris cálido
-ACCENT = "#D96B43"        # Terracota elegante
+# --- PALETA DE COLORES (BLANCO Y TERRACOTA) ---
+BG_WHITE = "#FFFFFF"
+BG_SOFT = "#F9F6F0"      # Crema muy suave
+TEXT_DARK = "#1C1917"    # Carbón
+TEXT_GRAY = "#78716C"
+ACCENT = "#D96B43"       # Terracota
 
 # --- COMPONENTES ---
 
@@ -96,10 +97,10 @@ def ticker_tasa() -> rx.Component:
     return rx.box(
         rx.hstack(
             rx.text(f"Tasa Oficial BCV: {State.TASA_BCV:.2f} Bs/$", size="1", color="white", weight="bold"),
-            rx.text(f"| Actualizado el: {State.FECHA}", size="1", color="rgba(255,255,255,0.7)"),
+            rx.text(f"| Actualizado: {State.FECHA}", size="1", color="rgba(255,255,255,0.8)"),
             spacing="2", justify="center", width="100%"
         ),
-        bg=TEXT_DARK, padding="0.5em", width="100%"
+        bg=TEXT_DARK, padding="0.6em", width="100%"
     )
 
 def navbar() -> rx.Component:
@@ -124,7 +125,7 @@ def navbar() -> rx.Component:
                 ),
                 size="4"
             ),
-            width="100%", bg="rgba(250, 250, 249, 0.95)", backdrop_filter="blur(12px)", border_bottom="1px solid #E7E5E4", position="sticky", top="0", z_index="1000",
+            width="100%", bg="rgba(255, 255, 255, 0.95)", backdrop_filter="blur(12px)", border_bottom="1px solid #E7E5E4", position="sticky", top="0", z_index="1000",
         ),
         spacing="0", width="100%"
     )
@@ -174,7 +175,7 @@ def galeria_trabajos() -> rx.Component:
             columns=rx.breakpoints(initial="2", sm="2", md="3", lg="5"),
             spacing="4", width="100%", margin_top="2em",
         ),
-        padding="4em 2em", width="100%", align="center", bg=BG_COLOR, id="galeria"
+        padding="4em 2em", width="100%", align="center", bg=BG_SOFT, id="galeria"
     )
 
 def seccion_personalizador() -> rx.Component:
@@ -231,7 +232,7 @@ def footer() -> rx.Component:
         rx.vstack(
             rx.hstack(
                 rx.icon(tag="instagram", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT}),
-                rx.icon(tag="music", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT}), # TikTok
+                rx.icon(tag="music", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT}),
                 spacing="6", margin_bottom="1em"
             ),
             rx.text("© 2024 SubliCaracas. Diseño y calidad sin compromisos.", color=TEXT_GRAY, size="1"),
@@ -240,7 +241,7 @@ def footer() -> rx.Component:
         width="100%"
     )
 
-# --- BOTÓN FLOTANTE CON EL LOGO REAL DE WHATSAPP ---
+# --- BOTÓN FLOTANTE DE WHATSAPP ---
 def boton_flotante_whatsapp() -> rx.Component:
     return rx.link(
         rx.image(
@@ -264,19 +265,19 @@ def index() -> rx.Component:
         navbar(),
         boton_flotante_whatsapp(),
         
-        # --- HERO SECTION ---
+        # --- HERO SECTION (Limpio, Luminoso) ---
         rx.box(
             rx.image(
-                # Foto de ropa colgada (Estilo Boutique)
                 src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1920&auto=format&fit=crop", 
                 width="100%", height="100%", object_fit="cover", position="absolute", top="0", left="0", z_index="0"
             ),
-            rx.box(position="absolute", top="0", left="0", width="100%", height="100%", background="linear-gradient(to right, rgba(28,25,23,0.85) 0%, rgba(28,25,23,0.4) 100%)", z_index="1"),
+            # Gradiente suave para que el texto resalte sin ser oscuro
+            rx.box(position="absolute", top="0", left="0", width="100%", height="100%", background="linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%)", z_index="1"),
             
             rx.vstack(
                 rx.badge("TEXTILES Y SUBLIMACIÓN", color_scheme="orange", variant="solid", size="1"),
-                rx.heading("Creamos lo que imaginas.", size=rx.breakpoints(initial="7", sm="8", md="9"), weight="bold", text_align="left", color="white", line_height="1.1", letter_spacing="-0.03em"),
-                rx.text("Tazas, gorras y franelas personalizadas en Caracas.", color="rgba(255,255,255,0.8)", size=rx.breakpoints(initial="3", sm="4", md="4")),
+                rx.heading("Creamos lo que imaginas.", size=rx.breakpoints(initial="7", sm="8", md="9"), weight="bold", text_align="left", color=TEXT_DARK, line_height="1.1", letter_spacing="-0.03em"),
+                rx.text("Tazas, gorras y franelas personalizadas en Caracas.", color=TEXT_GRAY, size=rx.breakpoints(initial="3", sm="4", md="4")),
                 rx.button("Ver Catálogo", on_click=rx.call_script("document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})"), size="3", bg=ACCENT, color="white", border_radius="8px", margin_top="1.5em", _hover={"bg": "#C25733"}),
                 align="start", padding=rx.breakpoints(initial="6em 2em", sm="8em 3em", md="10em 5em"), width="100%", max_width="1200px", z_index="2",
             ),
@@ -293,19 +294,19 @@ def index() -> rx.Component:
                 columns=rx.breakpoints(initial="2", sm="2", md="3"),
                 spacing="6", width="100%", margin_top="2em",
             ),
-            padding="4em 2em", width="100%", align="center", bg="#FFFFFF", id="catalogo"
+            padding="4em 2em", width="100%", align="center", bg=BG_WHITE, id="catalogo"
         ),
 
         galeria_trabajos(),
 
         rx.box(
             seccion_personalizador(),
-            width="100%", padding="4em 2em", bg=BG_COLOR, id="personalizar"
+            width="100%", padding="4em 2em", bg=BG_SOFT, id="personalizar"
         ),
         
         footer(),
         
-        bg=BG_COLOR, min_height="100vh", align="center", width="100%", spacing="0",
+        bg=BG_WHITE, min_height="100vh", align="center", width="100%", spacing="0",
     )
 
 app = rx.App(style={"font_family": "'Inter', system-ui, sans-serif"})
