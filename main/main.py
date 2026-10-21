@@ -7,7 +7,7 @@ from datetime import datetime
 from functools import lru_cache
 import urllib3
 
-# Desactivar advertencias de SSL para el BCV
+# Desactivar advertencias de SSL
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- SCRAPING BCV ---
@@ -84,25 +84,22 @@ class State(rx.State):
 
 WHATSAPP_NUMERO = "584242446795"
 
-# --- COLORES TECH ---
-BG_DARK = "#09090B"       # Fondo principal (casi negro)
-CARD_BG = "#18181B"       # Fondo de tarjetas
-TEXT_WHITE = "#FAFAFA"    # Texto principal
-TEXT_GRAY = "#A1A1AA"     # Texto secundario
-ACCENT_BLUE = "#3B82F6"   # Azul eléctrico
-ACCENT_GREEN = "#25D366"  # Verde WhatsApp
+# --- PALETA DE COLORES BOUTIQUE TEXTIL ---
+BG_COLOR = "#FAFAF9"      # Blanco roto (muy limpio)
+TEXT_DARK = "#1C1917"     # Carbón oscuro
+TEXT_GRAY = "#78716C"     # Gris cálido
+ACCENT = "#D96B43"        # Terracota elegante
 
 # --- COMPONENTES ---
 
 def ticker_tasa() -> rx.Component:
     return rx.box(
         rx.hstack(
-            rx.icon(tag="activity", size=14, color=ACCENT_GREEN),
-            rx.text(f"TASA BCV: {State.TASA_BCV:.2f} Bs/$", size="1", color=TEXT_WHITE, weight="bold", letter_spacing="1px"),
-            rx.text(f"| {State.FECHA}", size="1", color=TEXT_GRAY),
+            rx.text(f"Tasa Oficial BCV: {State.TASA_BCV:.2f} Bs/$", size="1", color="white", weight="bold"),
+            rx.text(f"| Actualizado el: {State.FECHA}", size="1", color="rgba(255,255,255,0.7)"),
             spacing="2", justify="center", width="100%"
         ),
-        bg="#000000", padding="0.5em", width="100%", border_bottom="1px solid #27272A"
+        bg=TEXT_DARK, padding="0.5em", width="100%"
     )
 
 def navbar() -> rx.Component:
@@ -112,13 +109,14 @@ def navbar() -> rx.Component:
             rx.container(
                 rx.flex(
                     rx.hstack(
-                        rx.icon(tag="zap", color=ACCENT_BLUE, size=24),
-                        rx.heading("SubliCaracas", size="5", weight="bold", color=TEXT_WHITE, letter_spacing="-0.05em"),
+                        rx.icon(tag="scissors", color=ACCENT, size=24),
+                        rx.heading("SubliCaracas", size="5", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
                         align="center",
                     ),
                     rx.flex(
-                        rx.link("Catálogo", href="#catalogo", color=TEXT_GRAY, weight="medium", _hover={"color": TEXT_WHITE}),
-                        rx.link("Personalizar", href="#personalizar", color=TEXT_GRAY, weight="medium", _hover={"color": TEXT_WHITE}),
+                        rx.link("Catálogo", href="#catalogo", color=TEXT_GRAY, weight="medium", _hover={"color": TEXT_DARK}),
+                        rx.link("Galería", href="#galeria", color=TEXT_GRAY, weight="medium", _hover={"color": TEXT_DARK}),
+                        rx.link("Cotizar Diseño", href="#personalizar", color=TEXT_GRAY, weight="medium", _hover={"color": TEXT_DARK}),
                         spacing="6", direction=rx.breakpoints(initial="row", sm="row"), justify="center",
                     ),
                     direction=rx.breakpoints(initial="column", md="row"),
@@ -126,7 +124,7 @@ def navbar() -> rx.Component:
                 ),
                 size="4"
             ),
-            width="100%", bg="rgba(9, 9, 11, 0.8)", backdrop_filter="blur(12px)", border_bottom="1px solid #27272A", position="sticky", top="0", z_index="1000",
+            width="100%", bg="rgba(250, 250, 249, 0.95)", backdrop_filter="blur(12px)", border_bottom="1px solid #E7E5E4", position="sticky", top="0", z_index="1000",
         ),
         spacing="0", width="100%"
     )
@@ -136,12 +134,12 @@ def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str) -> rx.C
     return rx.box(
         rx.vstack(
             rx.box(
-                rx.image(src=imagen, width="100%", height="240px", object_fit="cover", border_radius="8px 8px 0 0"),
-                rx.badge(f"${precio:.2f}", color_scheme="blue", variant="solid", size="1", position="absolute", top="12px", right="12px", border_radius="full", box_shadow="0 0 10px rgba(59, 130, 246, 0.5)"),
+                rx.image(src=imagen, width="100%", height="260px", object_fit="cover"),
+                rx.badge(f"${precio:.2f}", color_scheme="orange", variant="solid", size="1", position="absolute", top="12px", right="12px", border_radius="full"),
                 position="relative", width="100%",
             ),
             rx.vstack(
-                rx.heading(nombre, size="3", weight="bold", color=TEXT_WHITE),
+                rx.heading(nombre, size="3", weight="bold", color=TEXT_DARK),
                 rx.text(desc, size="1", color=TEXT_GRAY, min_height="30px"),
                 rx.hstack(
                     rx.text(f"Bs. {precio_bs}", color=TEXT_GRAY, size="1"),
@@ -149,16 +147,16 @@ def tarjeta_producto(nombre: str, precio: float, imagen: str, desc: str) -> rx.C
                     rx.button(
                         rx.icon(tag="plus", size=14), 
                         on_click=lambda: State.agregar_al_carrito(nombre, precio),
-                        bg="#27272A", color=TEXT_WHITE, border_radius="full", size="1", 
-                        _hover={"bg": ACCENT_BLUE, "color": "white", "box_shadow": "0 0 10px rgba(59, 130, 246, 0.5)"}
+                        bg="#F5F5F4", color=TEXT_DARK, border_radius="full", size="1", 
+                        _hover={"bg": ACCENT, "color": "white"}
                     ),
                 ),
                 align_items="start", width="100%", padding="1.2em",
             ),
-            spacing="0", width="100%", bg=CARD_BG, border_radius="12px",
+            spacing="0", width="100%", bg="white",
         ),
-        border="1px solid #27272A", border_radius="12px", overflow="hidden", width="100%",
-        _hover={"border_color": ACCENT_BLUE, "box_shadow": "0 0 20px rgba(59, 130, 246, 0.1)", "transform": "translateY(-4px)", "transition": "0.3s"}
+        border="1px solid #E7E5E4", border_radius="12px", overflow="hidden", width="100%",
+        _hover={"box_shadow": "0 10px 25px -5px rgba(0, 0, 0, 0.05)", "transform": "translateY(-2px)", "transition": "0.3s"}
     )
 
 def galeria_trabajos() -> rx.Component:
@@ -170,55 +168,50 @@ def galeria_trabajos() -> rx.Component:
         {"nombre": "Pijama Cuadros", "precio": 20.00, "foto": "/pijama5.jpeg", "desc": "Clásico."},
     ]
     return rx.vstack(
-        rx.heading("Colección de Pijamas", size="6", weight="bold", color=TEXT_WHITE, letter_spacing="-0.02em"),
+        rx.heading("Colección de Pijamas", size="6", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
         rx.grid(
             *[tarjeta_producto(p["nombre"], p["precio"], p["foto"], p["desc"]) for p in productos],
-            columns=rx.breakpoints(initial="1", sm="2", md="3", lg="5"),
+            columns=rx.breakpoints(initial="2", sm="2", md="3", lg="5"),
             spacing="4", width="100%", margin_top="2em",
         ),
-        padding="4em 2em", width="100%", align="center", bg=BG_DARK, id="galeria"
+        padding="4em 2em", width="100%", align="center", bg=BG_COLOR, id="galeria"
     )
 
 def seccion_personalizador() -> rx.Component:
     return rx.box(
         rx.flex(
             rx.vstack(
-                rx.badge("HERRAMIENTA DE DISEÑO", color_scheme="blue", variant="soft", size="1", margin_bottom="1em"),
-                rx.heading("Sube tu diseño, nosotros lo hacemos realidad.", size="6", weight="bold", color=TEXT_WHITE, letter_spacing="-0.02em"),
-                rx.text("Envía tu logo o idea. Te enviaremos una muestra real por WhatsApp antes de que pagues.", color=TEXT_GRAY, size="3", line_height="1.6"),
-                rx.divider(margin_y="1.5em", border_color="#27272A"),
-                rx.hstack(
-                    rx.icon(tag="shield-check", color=ACCENT_GREEN, size=20),
-                    rx.text("Garantía: Si no te gusta el diseño, no pagas nada.", color=TEXT_WHITE, weight="medium", size="2"),
-                    spacing="2", align="center"
-                ),
+                rx.heading("Cotiza tu diseño personalizado", size="6", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
+                rx.text("Sube tu logo y cuéntanos qué necesitas. Te enviaremos una muestra por WhatsApp.", color=TEXT_GRAY, size="3", line_height="1.6"),
+                rx.divider(margin_y="1.5em", border_color="#E7E5E4"),
+                rx.text("Garantía SubliCaracas: Si no te gusta el diseño, no pagas nada.", color=ACCENT, weight="bold", size="2"),
                 align="start",
                 width=rx.breakpoints(initial="100%", md="50%"),
                 padding_right=rx.breakpoints(initial="0", md="2em"),
                 margin_bottom=rx.breakpoints(initial="2em", md="0"),
             ),
             rx.vstack(
-                rx.text("1. Sube tu logo (PNG)", weight="bold", size="2", color=TEXT_WHITE),
+                rx.text("1. Sube tu logo (PNG)", weight="bold", size="2", color=TEXT_DARK),
                 rx.upload(
-                    rx.vstack(rx.icon(tag="upload-cloud", size=32, color=ACCENT_BLUE), rx.text("Haz clic o arrastra tu archivo", size="2", color=TEXT_GRAY), align="center"),
-                    id="logo_upload", border="2px dashed #3F3F46", padding="2.5em", border_radius="12px", background="#18181B",
+                    rx.vstack(rx.icon(tag="upload-cloud", size=32, color=ACCENT), rx.text("Haz clic o arrastra tu archivo", size="2", color=TEXT_GRAY), align="center"),
+                    id="logo_upload", border="2px dashed #D6D3D1", padding="2.5em", border_radius="12px", background="#FFFFFF",
                     on_drop=State.handle_upload(rx.upload_files(upload_id="logo_upload")), width="100%",
-                    _hover={"border_color": ACCENT_BLUE, "background": "#27272A"}
+                    _hover={"border_color": ACCENT, "background": "#FFF7ED"}
                 ),
                 rx.cond(
                     State.logo_subido.length() > 0,
                     rx.button("Quitar imagen", on_click=State.limpiar_logo, size="1", variant="soft", color_scheme="red", margin_top="0.5em", width="100%")
                 ),
-                rx.text("2. Describe tu idea", weight="bold", size="2", color=TEXT_WHITE, margin_top="1.5em"),
-                rx.input(placeholder="Ej: Gorra con el logo de mi empresa...", value=State.texto_cliente, on_change=State.set_texto_cliente, width="100%", size="3", margin_bottom="1.5em", border_radius="8px", bg="#18181B", border="1px solid #3F3F46", color=TEXT_WHITE),
+                rx.text("2. Describe tu idea", weight="bold", size="2", color=TEXT_DARK, margin_top="1.5em"),
+                rx.input(placeholder="Ej: Gorra con el logo de mi empresa...", value=State.texto_cliente, on_change=State.set_texto_cliente, width="100%", size="3", margin_bottom="1.5em", border_radius="8px", bg="#FFFFFF", border="1px solid #D6D3D1", color=TEXT_DARK),
                 
-                # BOTÓN DE WHATSAPP TIPO TECNOLÓGICO
+                # BOTÓN DE WHATSAPP CON ICONO REAL
                 rx.link(
                     rx.button(
-                        rx.icon(tag="message-circle", size=20),
+                        rx.image(src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg", width="20px", margin_right="8px"),
                         "Solicitar Cotización por WhatsApp", 
-                        bg=ACCENT_GREEN, color="black", width="100%", size="3", border_radius="8px", weight="bold",
-                        _hover={"bg": "#1EA952", "box_shadow": "0 0 15px rgba(37, 211, 102, 0.4)"}
+                        bg="#25D366", color="white", width="100%", size="3", border_radius="8px", weight="bold",
+                        _hover={"bg": "#1EA952"}
                     ),
                     href="https://wa.me/584242446795?text=Hola,%20quiero%20cotizar%20un%20diseño%20personalizado", 
                     is_external=True, width="100%"
@@ -229,43 +222,40 @@ def seccion_personalizador() -> rx.Component:
             direction=rx.breakpoints(initial="column", md="row"),
             width="100%", align="center", spacing="6", padding=rx.breakpoints(initial="2em 1em", md="4em")
         ),
-        background=CARD_BG, border="1px solid #27272A", border_radius="16px", width="100%", max_width="1000px", margin="0 auto",
-        box_shadow="0 4px 20px -1px rgba(0,0,0,0.5)"
+        background="#FFFFFF", border="1px solid #E7E5E4", border_radius="16px", width="100%", max_width="1000px", margin="0 auto",
+        box_shadow="0 4px 6px -1px rgba(0,0,0,0.05)"
     )
 
 def footer() -> rx.Component:
     return rx.box(
         rx.vstack(
             rx.hstack(
-                rx.icon(tag="instagram", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT_BLUE}),
-                rx.icon(tag="message-circle", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT_GREEN}),
-                rx.icon(tag="music", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT_BLUE}),
+                rx.icon(tag="instagram", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT}),
+                rx.icon(tag="music", size=24, color=TEXT_GRAY, cursor="pointer", _hover={"color": ACCENT}), # TikTok
                 spacing="6", margin_bottom="1em"
             ),
-            rx.text("© 2024 SubliCaracas. Impulsado por tecnología.", color="#52525B", size="1"),
-            align="center", padding="3em", width="100%", bg="#000000", border_top="1px solid #27272A"
+            rx.text("© 2024 SubliCaracas. Diseño y calidad sin compromisos.", color=TEXT_GRAY, size="1"),
+            align="center", padding="3em", width="100%", bg="#FFFFFF", border_top="1px solid #E7E5E4"
         ),
         width="100%"
     )
 
-# --- BOTÓN FLOTANTE DE WHATSAPP (ESTILO NEÓN) ---
+# --- BOTÓN FLOTANTE CON EL LOGO REAL DE WHATSAPP ---
 def boton_flotante_whatsapp() -> rx.Component:
     return rx.link(
-        rx.box(
-            rx.icon(tag="message-circle", size=35, color="black"),
-            bg=ACCENT_GREEN,
-            padding="1em",
-            border_radius="full",
-            box_shadow="0 0 20px rgba(37, 211, 102, 0.6)",
+        rx.image(
+            src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg",
+            width="65px",
+            height="65px",
             position="fixed",
             bottom="20px",
             right="20px",
             z_index="9999",
             cursor="pointer",
-            _hover={"transform": "scale(1.1)", "transition": "all 0.3s ease", "box_shadow": "0 0 30px rgba(37, 211, 102, 0.8)"},
-            animation="pulse 2s infinite"
+            _hover={"transform": "scale(1.1)", "transition": "all 0.3s ease"},
+            filter="drop-shadow(0px 8px 16px rgba(0,0,0,0.3))"
         ),
-        href="https://wa.me/584242446795?text=Hola,%20quiero%20información",
+        href="https://wa.me/584242446795?text=Hola,%20quiero%20más%20información",
         is_external=True
     )
 
@@ -274,48 +264,48 @@ def index() -> rx.Component:
         navbar(),
         boton_flotante_whatsapp(),
         
-        # --- HERO SECTION (TECH OSCURO) ---
+        # --- HERO SECTION ---
         rx.box(
-            # Gradiente radial sutil en el fondo
-            rx.box(position="absolute", top="0", left="0", width="100%", height="100%", background="radial-gradient(circle at 50% 0%, #1E1B4B 0%, #09090B 70%)", z_index="0"),
+            rx.image(
+                # Foto de ropa colgada (Estilo Boutique)
+                src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1920&auto=format&fit=crop", 
+                width="100%", height="100%", object_fit="cover", position="absolute", top="0", left="0", z_index="0"
+            ),
+            rx.box(position="absolute", top="0", left="0", width="100%", height="100%", background="linear-gradient(to right, rgba(28,25,23,0.85) 0%, rgba(28,25,23,0.4) 100%)", z_index="1"),
             
             rx.vstack(
-                rx.badge("EL FUTURO DEL DISEÑO TEXTIL", color_scheme="blue", variant="solid", size="1", padding="0.5em 1em", border_radius="full"),
-                rx.heading("Tecnología en cada diseño.", size=rx.breakpoints(initial="8", sm="9", md="9"), weight="bold", text_align="center", color=TEXT_WHITE, line_height="1.1", letter_spacing="-0.05em", margin_top="0.5em"),
-                rx.text("Sublimación de alta gama. Tazas, gorras y franelas para quienes buscan la perfección.", color=TEXT_GRAY, size=rx.breakpoints(initial="3", sm="4", md="4"), text_align="center", max_width="600px", margin_top="1em"),
-                rx.hstack(
-                    rx.button("Explorar Catálogo", on_click=rx.call_script("document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})"), size="3", bg=TEXT_WHITE, color="black", border_radius="8px", weight="bold", _hover={"bg": "#D4D4D8"}),
-                    rx.button("Personalizar", on_click=rx.call_script("document.getElementById('personalizar').scrollIntoView({behavior: 'smooth'})"), size="3", variant="outline", color=TEXT_WHITE, border_color="#3F3F46", border_radius="8px", _hover={"bg": "#18181B"}),
-                    spacing="4", margin_top="2em"
-                ),
-                align="center", padding=rx.breakpoints(initial="6em 2em", sm="8em 2em", md="10em 2em"), width="100%", z_index="1",
+                rx.badge("TEXTILES Y SUBLIMACIÓN", color_scheme="orange", variant="solid", size="1"),
+                rx.heading("Creamos lo que imaginas.", size=rx.breakpoints(initial="7", sm="8", md="9"), weight="bold", text_align="left", color="white", line_height="1.1", letter_spacing="-0.03em"),
+                rx.text("Tazas, gorras y franelas personalizadas en Caracas.", color="rgba(255,255,255,0.8)", size=rx.breakpoints(initial="3", sm="4", md="4")),
+                rx.button("Ver Catálogo", on_click=rx.call_script("document.getElementById('catalogo').scrollIntoView({behavior: 'smooth'})"), size="3", bg=ACCENT, color="white", border_radius="8px", margin_top="1.5em", _hover={"bg": "#C25733"}),
+                align="start", padding=rx.breakpoints(initial="6em 2em", sm="8em 3em", md="10em 5em"), width="100%", max_width="1200px", z_index="2",
             ),
-            position="relative", width="100%", min_height="70vh", display="flex", align_items="center", justify_content="center", overflow="hidden", border_bottom="1px solid #27272A"
+            position="relative", width="100%", min_height="70vh", display="flex", align_items="center", justify_content="center", overflow="hidden"
         ),
         
         # CATÁLOGO
         rx.vstack(
-            rx.heading("Catálogo Destacado", size="6", weight="bold", color=TEXT_WHITE, letter_spacing="-0.02em"),
+            rx.heading("Catálogo Destacado", size="6", weight="bold", color=TEXT_DARK, letter_spacing="-0.02em"),
             rx.grid(
                 tarjeta_producto("Taza Cerámica", 8.00, "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Acabado brillante."),
                 tarjeta_producto("Gorra Premium", 12.00, "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Malla transpirable."),
                 tarjeta_producto("Franela Algodón", 15.00, "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", "Corte moderno."),
-                columns=rx.breakpoints(initial="1", sm="2", md="3"),
+                columns=rx.breakpoints(initial="2", sm="2", md="3"),
                 spacing="6", width="100%", margin_top="2em",
             ),
-            padding="6em 2em", width="100%", align="center", bg=BG_DARK, id="catalogo"
+            padding="4em 2em", width="100%", align="center", bg="#FFFFFF", id="catalogo"
         ),
 
         galeria_trabajos(),
 
         rx.box(
             seccion_personalizador(),
-            width="100%", padding="6em 2em", bg=BG_DARK, id="personalizar"
+            width="100%", padding="4em 2em", bg=BG_COLOR, id="personalizar"
         ),
         
         footer(),
         
-        bg=BG_DARK, min_height="100vh", align="center", width="100%", spacing="0",
+        bg=BG_COLOR, min_height="100vh", align="center", width="100%", spacing="0",
     )
 
 app = rx.App(style={"font_family": "'Inter', system-ui, sans-serif"})
